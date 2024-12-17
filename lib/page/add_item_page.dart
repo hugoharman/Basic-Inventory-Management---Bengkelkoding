@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Import services for FilteringTextInputFormatter
-import '../../model/database_helper.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-
+import '/model/database_helper.dart';
 import '/model/item.dart';
 
 class AddItemPage extends StatefulWidget {
@@ -32,8 +31,8 @@ class _AddItemPageState extends State<AddItemPage> {
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+  Future<void> _pickImage({ImageSource source = ImageSource.gallery}) async {
+    final pickedFile = await _picker.pickImage(source: source);
     if (pickedFile != null) {
       final imageBytes = await pickedFile.readAsBytes();
       setState(() {
@@ -58,6 +57,38 @@ class _AddItemPageState extends State<AddItemPage> {
     }
   }
 
+  void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Pilih sumber gambar"),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                GestureDetector(
+                  child: const Text("Galeri"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(source: ImageSource.gallery);
+                  },
+                ),
+                const Padding(padding: EdgeInsets.all(8.0)),
+                GestureDetector(
+                  child: const Text("Kamera"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(source: ImageSource.camera);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,9 +96,8 @@ class _AddItemPageState extends State<AddItemPage> {
         backgroundColor: Colors.deepOrange,
         title: const Text('Tambah Barang Baru',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        iconTheme:
-        const IconThemeData(color: Colors.white), // Set icon color to white
-        centerTitle: true, // Center the title
+        iconTheme: const IconThemeData(color: Colors.white),
+        centerTitle: true,
         elevation: 0,
       ),
       body: Form(
@@ -78,7 +108,8 @@ class _AddItemPageState extends State<AddItemPage> {
             child: Column(
               children: [
                 GestureDetector(
-                  onTap: _pickImage,
+                  onTap:
+                  _showImageSourceDialog, // Show dialog on image tap
                   child: Container(
                     height: 200,
                     decoration: BoxDecoration(
@@ -126,7 +157,6 @@ class _AddItemPageState extends State<AddItemPage> {
                     if (value == null || value.isEmpty) {
                       return 'Harga tidak boleh kosong';
                     }
-                    // No need for int.tryParse here, inputFormatters ensure only digits
                     return null;
                   },
                 ),
@@ -141,7 +171,6 @@ class _AddItemPageState extends State<AddItemPage> {
                     if (value == null || value.isEmpty) {
                       return 'Stok tidak boleh kosong';
                     }
-                    // No need for int.tryParse here, inputFormatters ensure only digits
                     return null;
                   },
                 ),
@@ -150,7 +179,7 @@ class _AddItemPageState extends State<AddItemPage> {
                   onPressed: _saveItem,
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
-                    backgroundColor: Colors.deepOrange, // Set text color to white
+                    backgroundColor: Colors.deepOrange,
                   ),
                   child: const Text('Simpan'),
                 ),
